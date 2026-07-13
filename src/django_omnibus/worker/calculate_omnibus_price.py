@@ -4,6 +4,7 @@
 
 import logging
 from datetime import timedelta
+from decimal import Decimal
 from itertools import groupby
 
 from django.db.models import Max, Min, OuterRef, Q, Subquery
@@ -21,6 +22,9 @@ from django_omnibus.settings import (
     PRICELIST_OMNIBUS_FILTER_DATE_MECHANISM,
 )
 
+logger_process = logging.getLogger("process")
+logger = logging.getLogger(__name__)
+
 try:
     from django_pricemanager.models import Channel as PMChannel
     from django_pricemanager.models import CurrentPrice, PriceHistory
@@ -30,10 +34,6 @@ except ImportError:
 
     def read_from_current() -> bool:
         return False
-
-
-logger_process = logging.getLogger("process")
-logger = logging.getLogger(__name__)
 
 
 def create_structured_data(data, base):

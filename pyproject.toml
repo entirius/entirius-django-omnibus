@@ -1,6 +1,6 @@
 [project]
 name = "entirius-django-omnibus"
-version = "3.0.0"
+version = "3.0.1"
 description = "Omnibus (EU price directive) lowest-price tracking for Volkanos: price history and omnibus price calculation"
 authors = [{ name = "Entirius" }]
 readme = "README.md"
@@ -9,7 +9,7 @@ license = "MPL-2.0"
 dependencies = [
     "django>=5.0",
     "marshmallow",
-    "marshmallow-dataclass[enum, union]",
+    "marshmallow-dataclass",
     "entirius-django-checkout>=9.0.0",
     "entirius-django-pim>=3.0.0",
     "entirius-django-pricemanager>=4.0.1",
