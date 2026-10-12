@@ -12,6 +12,8 @@ Django app `django_omnibus`.
 | `make fix` | auto-fix lint + format |
 | `make test` | test suite (pytest + pytest-django) |
 
+Tests need PostgreSQL: set `DATABASE_URL` (the default in `tests/settings.py` points at a local postgres).
+
 ## Conventions
 
 - English only: code, docs, commits, branches, PRs.
@@ -21,6 +23,7 @@ Django app `django_omnibus`.
 - Never rename the package / Django app_label / DB table prefix `django_omnibus` — it is a schema contract.
 - Migrations are part of the public contract — never edit an already released migration.
 - Default: do not commit — git is the user's call.
+- No AI attribution in commits or PR descriptions.
 
 ## Architecture
 
@@ -35,18 +38,21 @@ src/django_omnibus/
 ├── admin.py                # ModelAdmin registrations
 ├── bi.py                   # BI events (bievents)
 ├── management/commands/    # calculate-omnibus-price, fill-…-from-pim, import-…-from-csv
-└── tests/                  # legacy in-package developer tests (not executed; see Testing)
+└── tests/                  # legacy in-package developer tests (not executed; see below)
 ```
 
-## Dependencies
+`django_checkout` (discount rules, discount calc DTOs) is a hard import in the worker; `django_pim` is the product
+source for representations (the worker re-raises when absent); `django_pricemanager` gives the Channel FK and the
+price list reads.
 
-| Module | Purpose |
+Executed suite is an import smoke test (`tests/test_smoke.py`). The legacy developer tests in
+`src/django_omnibus/tests/` are outside `testpaths` (they need `mock`/`line_profiler` and write
+profiling files) — migrating them to `tests/` is a pending cleanup.
+
+| Topic | Where |
 |---|---|
-| `django_checkout` | discount rules (`DiscountRuleCode`), discount calc DTOs (hard import in worker) |
-| `django_pricemanager` | Channel FK + price list reads |
-| `django_pim` | product/`RealProduct` source for representations (worker re-raises when absent) |
-| `idx_normalizator` | SKU validation on models |
-| `bievents` | BI command decorators + events |
+| Functional overview, consumers, dependencies | `docs/index.md` |
+| Sample file for `import-omnibus-prices-from-csv` | `docs/omnibus_import_test.csv` |
 
 ## Settings
 
@@ -55,19 +61,4 @@ src/django_omnibus/
 | `BULK_SIZE_OMNIBUS` | `10` | bulk size for price recalculation |
 | `APPLIED_SPECIAL_PRICE_WHEN_NULL_VALIDITY_DATES` | `True` | treat undated special prices as active |
 | `PRICELIST_OMNIBUS_FILTER_DATE_MECHANISM` | `1` | 1=latest / 2=last 30 days / 3=all price lists |
-
-## Testing
-
-```bash
-# Postgres required; tests/settings.py reads DATABASE_URL
-# (default postgresql://postgres:postgres@localhost:5432/test).
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test make test
-```
-
-Executed suite is an import smoke test (`tests/test_smoke.py`). The legacy developer tests in
-`src/django_omnibus/tests/` are outside `testpaths` (they need `mock`/`line_profiler` and write
-profiling files) — migrating them to `tests/` is a pending cleanup.
-
-## References
-
-- `docs/README.md` — functional description of the omnibus price algorithm (Polish; translation pending).
+| `BI_ENVIRONMENT` / `BI_BUSINESS_UNIT` | — | required by `bi.py` at import time |
